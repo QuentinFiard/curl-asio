@@ -429,6 +429,13 @@ namespace curl
 			return (this < &other);
 		}
 
+		inline void set_multi(multi* multi)
+		{
+			// Cancel all previous async. operations
+			cancel();
+			multi_ = multi;
+		}
+
 		void handle_completion(const boost::system::error_code& err);
 
 	private:
