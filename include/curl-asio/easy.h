@@ -94,8 +94,9 @@ namespace curl
 
 		static easy* from_native(native::CURL* native_easy);
 
-		easy(boost::asio::io_service& io_service);
-		easy(multi& multi_handle);
+		easy();
+		explicit easy(boost::asio::io_service& io_service);
+		explicit easy(multi& multi_handle);
 		~easy();
 
 		inline native::CURL* native_handle() { return handle_; }
@@ -429,12 +430,7 @@ namespace curl
 			return (this < &other);
 		}
 
-		inline void set_multi(multi* multi)
-		{
-			// Cancel all previous async. operations
-			cancel();
-			multi_ = multi;
-		}
+		void set_multi(multi* multi);
 
 		void handle_completion(const boost::system::error_code& err);
 
@@ -448,7 +444,7 @@ namespace curl
 		static native::curl_socket_t opensocket(void* clientp, native::curlsocktype purpose, struct native::curl_sockaddr* address);
 		static int closesocket(void* clientp, native::curl_socket_t item);
 
-		boost::asio::io_service& io_service_;
+		boost::asio::io_service* io_service_;
 		initialization::ptr initref_;
 		native::CURL* handle_;
 		multi* multi_;

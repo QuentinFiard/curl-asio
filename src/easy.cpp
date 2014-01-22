@@ -23,8 +23,16 @@ easy* easy::from_native(native::CURL* native_easy)
 	return easy_handle;
 }
 
+easy::easy():
+	io_service_(0),
+	multi_(0),
+	multi_registered_(false)
+{
+	init();
+}
+
 easy::easy(boost::asio::io_service& io_service):
-	io_service_(io_service),
+	io_service_(&io_service),
 	multi_(0),
 	multi_registered_(false)
 {
@@ -32,7 +40,7 @@ easy::easy(boost::asio::io_service& io_service):
 }
 
 easy::easy(multi& multi_handle):
-	io_service_(multi_handle.get_io_service()),
+	io_service_(&multi_handle.get_io_service()),
 	multi_(&multi_handle),
 	multi_registered_(false)
 {
@@ -64,6 +72,10 @@ void easy::perform(boost::system::error_code& ec)
 
 void easy::async_perform(handler_type handler)
 {
+	if (!io_service_)
+	{
+		throw std::runtime_error("attempt to perform async. operation without assigning a io_service object");
+	}
 	if (!multi_)
 	{
 		throw std::runtime_error("attempt to perform async. operation without assigning a multi object");
@@ -444,6 +456,13 @@ void easy::set_telnet_options(boost::shared_ptr<string_list> telnet_options, boo
 	}
 }
 
+void easy::set_multi(multi* multi) {
+	// Cancel all previous async. operations
+	cancel();
+	multi_ = multi;
+	io_service_ = &multi_->get_io_service();
+}
+
 void easy::handle_completion(const boost::system::error_code& err)
 {
 	multi_registered_ = false;
@@ -466,7 +485,7 @@ void easy::init()
 native::curl_socket_t easy::open_tcp_socket(native::curl_sockaddr* address)
 {
 	boost::system::error_code ec;
-	std::auto_ptr<socket_type> socket(new socket_type(io_service_));
+	std::auto_ptr<socket_type> socket(new socket_type(*io_service_));
 
 	switch (address->family)
 	{
