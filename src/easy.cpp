@@ -67,15 +67,15 @@ void easy::perform()
 
 void easy::perform(boost::system::error_code& ec)
 {
+	if (!io_service_)
+	{
+		throw std::runtime_error("attempt to perform sync. operation without assigning an io_service object");
+	}
 	ec = boost::system::error_code(native::curl_easy_perform(handle_));
 }
 
 void easy::async_perform(handler_type handler)
 {
-	if (!io_service_)
-	{
-		throw std::runtime_error("attempt to perform async. operation without assigning a io_service object");
-	}
 	if (!multi_)
 	{
 		throw std::runtime_error("attempt to perform async. operation without assigning a multi object");
