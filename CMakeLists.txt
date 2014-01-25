@@ -11,33 +11,9 @@ PROJECT(curl-asio)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # Build options
-OPTION(BUILD_STATIC "Build the static library" ON)
-OPTION(BUILD_SHARED "Build the shared library" OFF)
 OPTION(BUILD_EXAMPLES "Build the examples" ON)
 
-IF(NOT MSVC)
-	OPTION(ENABLE_CPP11 "Enable features and examples which require C++11" ON)
-	IF(ENABLE_CPP11)
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-		FOREACH(_PROPERTY_NAME CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS CMAKE_MODULE_LINKER_FLAGS)
-			SET(${_PROPERTY_NAME} "${${_PROPERTY_NAME}} -stdlib=libc++")	
-		ENDFOREACH()
-	ENDIF()
-ENDIF()
-
-IF(NOT BUILD_STATIC AND NOT BUILD_SHARED)
-	MESSAGE(FATAL_ERROR "Neither BUILD_STATIC nor BUILD_SHARED is set")
-ENDIF()
-
 SET(CURLASIO_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-# Prefer the shared interface over the static for building examples
-IF(BUILD_SHARED)
-	SET(EXAMPLE_LINK_TARGET curlasio-shared)
-ELSE()
-	SET(EXAMPLE_LINK_TARGET curlasio-static)
-	SET(EXAMPLE_PROJECT_DEFINITIONS -DCURLASIO_STATIC)
-ENDIF()
 
 IF(MSVC)
 	# Select Windows version
@@ -48,10 +24,9 @@ IF(MSVC)
 		SET(TARGET_WINDOWS_VERSION 0x0501)
 	ENDIF()
 	ADD_DEFINITIONS(-D_WIN32_WINNT=${TARGET_WINDOWS_VERSION})
-	
+
 	# Disable using __declspec(dllimport) when linking statically
-	OPTION(CURL_IS_STATIC "Check if libcurl is a static library" OFF)
-	IF(CURL_IS_STATIC)
+	IF(NOT BUILD_SHARED_LIBS)
 		ADD_DEFINITIONS(-DCURL_STATICLIB)
 	ENDIF()
 ENDIF()
