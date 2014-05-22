@@ -110,6 +110,12 @@ void easy::cancel()
 	}
 }
 
+void easy::reset()
+{
+	native::curl_easy_reset(handle_);
+	set_private(this);
+}
+
 void easy::set_source(boost::shared_ptr<std::istream> source)
 {
 	boost::system::error_code ec;

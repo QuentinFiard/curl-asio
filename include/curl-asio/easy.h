@@ -105,6 +105,7 @@ namespace curl
 		void perform(boost::system::error_code& ec);
 		void async_perform(handler_type handler);
 		void cancel();
+		void reset();
 		void set_source(boost::shared_ptr<std::istream> source);
 		void set_source(boost::shared_ptr<std::istream> source, boost::system::error_code& ec);
 		void set_sink(boost::shared_ptr<std::ostream> sink);
