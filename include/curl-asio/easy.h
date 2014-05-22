@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 #include "error_code.h"
 #include "initialization.h"
 
@@ -105,6 +106,7 @@ namespace curl
 		void perform(boost::system::error_code& ec);
 		void async_perform(handler_type handler);
 		void cancel();
+		std::vector<std::string> get_cookies();
 		virtual void reset();
 		void set_source(boost::shared_ptr<std::istream> source);
 		void set_source(boost::shared_ptr<std::istream> source, boost::system::error_code& ec);

@@ -6,6 +6,7 @@
 	C++ wrapper for libcurl's easy interface
 */
 
+#include <list>
 #include <boost/make_shared.hpp>
 #include <curl-asio/easy.h>
 #include <curl-asio/error_code.h>
@@ -108,6 +109,20 @@ void easy::cancel()
 		multi_->remove(this);
 		multi_registered_ = false;
 	}
+}
+
+std::vector<std::string> easy::get_cookies()
+{
+	struct native::curl_slist *cookie_list, *node;
+	native::curl_easy_getinfo(handle_, native::CURLINFO_COOKIELIST, &cookie_list);
+	std::list<std::string> cookies;
+	node = cookie_list;
+	while (node) {
+		cookies.push_back(node->data);
+		node = node->next;
+	}
+	native::curl_slist_free_all(cookie_list);
+	return std::vector<std::string>(cookies.begin(), cookies.end());
 }
 
 void easy::reset()
