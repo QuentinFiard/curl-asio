@@ -7,6 +7,7 @@
 #pragma once
 
 #include "curl-asio/config.h"
+#include "curl-asio/cookie.h"
 #include "curl-asio/easy.h"
 #include "curl-asio/error_code.h"
 #include "curl-asio/form.h"
