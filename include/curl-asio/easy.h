@@ -97,7 +97,7 @@ namespace curl
 		easy();
 		explicit easy(boost::asio::io_service& io_service);
 		explicit easy(multi& multi_handle);
-		~easy();
+		virtual ~easy();
 
 		inline native::CURL* native_handle() { return handle_; }
 
@@ -105,7 +105,7 @@ namespace curl
 		void perform(boost::system::error_code& ec);
 		void async_perform(handler_type handler);
 		void cancel();
-		void reset();
+		virtual void reset();
 		void set_source(boost::shared_ptr<std::istream> source);
 		void set_source(boost::shared_ptr<std::istream> source, boost::system::error_code& ec);
 		void set_sink(boost::shared_ptr<std::ostream> sink);
