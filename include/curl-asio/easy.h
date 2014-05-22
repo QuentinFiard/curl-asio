@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "error_code.h"
 #include "initialization.h"
@@ -82,6 +83,7 @@
 
 namespace curl
 {
+	class cookie;
 	class form;
 	class multi;
 	class share;
@@ -92,6 +94,7 @@ namespace curl
 	{
 	public:
 		typedef boost::function<void(const boost::system::error_code& err)> handler_type;
+		typedef std::unordered_map<std::string, std::unique_ptr<cookie> > CookieMap;
 
 		static easy* from_native(native::CURL* native_easy);
 
@@ -106,7 +109,7 @@ namespace curl
 		void perform(boost::system::error_code& ec);
 		void async_perform(handler_type handler);
 		void cancel();
-		std::vector<std::string> get_cookies();
+		CookieMap get_cookies() const;
 		virtual void reset();
 		void set_source(boost::shared_ptr<std::istream> source);
 		void set_source(boost::shared_ptr<std::istream> source, boost::system::error_code& ec);

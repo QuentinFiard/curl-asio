@@ -7,7 +7,9 @@
 */
 
 #include <list>
+#include <regex>
 #include <boost/make_shared.hpp>
+#include <curl-asio/cookie.h>
 #include <curl-asio/easy.h>
 #include <curl-asio/error_code.h>
 #include <curl-asio/form.h>
@@ -111,18 +113,53 @@ void easy::cancel()
 	}
 }
 
-std::vector<std::string> easy::get_cookies()
+easy::CookieMap easy::get_cookies() const
 {
 	struct native::curl_slist *cookie_list, *node;
 	native::curl_easy_getinfo(handle_, native::CURLINFO_COOKIELIST, &cookie_list);
-	std::list<std::string> cookies;
+	std::list<std::unique_ptr<cookie> > cookies;
 	node = cookie_list;
 	while (node) {
-		cookies.push_back(node->data);
+		std::string field;
+		std::stringstream cookie_data;
+		cookie_data << node->data;
+
+		std::unique_ptr<cookie> cookie(new class cookie);
+		// First element is domain.
+		std::getline(cookie_data, field, '\t');
+		cookie->set_domain(field);
+		// Second element is unused (flag to indicate if all the machines under
+		// that domain are allowed to access the cookie).
+		std::getline(cookie_data, field, '\t');
+		// Third element is path.
+		std::getline(cookie_data, field, '\t');
+		cookie->set_path(field);
+		// Fourth element is security.
+		std::getline(cookie_data, field, '\t');
+		cookie->set_secure(field == "TRUE");
+		// Fifth element is expiry as a Unix timestamp.
+		{
+			int64_t timestamp;
+			cookie_data >> timestamp;
+			cookie->set_expiry(cookie::time_point(std::chrono::seconds(timestamp)));
+		}
+		std::getline(cookie_data, field, '\t');
+		// Sixth element is the name.
+		std::getline(cookie_data, field, '\t');
+		cookie->set_name(field);
+		// Seventh element is the value.
+		std::getline(cookie_data, field, '\t');
+		cookie->set_value(field);
+
+		cookies.emplace_back(std::move(cookie));
 		node = node->next;
 	}
 	native::curl_slist_free_all(cookie_list);
-	return std::vector<std::string>(cookies.begin(), cookies.end());
+	CookieMap res;
+	for (auto &cookie: cookies) {
+		res.emplace(cookie->name(), std::move(cookie));
+	}
+	return res;
 }
 
 void easy::reset()
